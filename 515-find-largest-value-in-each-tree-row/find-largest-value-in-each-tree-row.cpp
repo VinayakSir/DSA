@@ -11,28 +11,24 @@
  */
 class Solution {
 public:
-    vector<int> largestValues(TreeNode* root) {
-       
-    if (!root)
-        return {};
-    queue<TreeNode *> q;
-    q.push(root);
-    vector<int> ans;
-    while (!q.empty())
-    {
-        int size = q.size();
-        int maxi = INT_MIN;
-        for (int i = 0; i < size; i++)
-        {
-            TreeNode *node = q.front();
-
-            if(node->val>maxi)maxi=node->val;
-            q.pop();
-            if (node->left)    q.push(node->left);
-            if (node->right)    q.push(node->right);
+      vector<int> result;
+    
+    void DFS(TreeNode* root, int depth) {
+        if(!root)
+            return;
+        
+        if(depth == result.size()) {
+            result.push_back(root->val);
+        } else {
+            result[depth] = max(result[depth], root->val);
         }
-        ans.push_back(maxi);
+        
+        DFS(root->left, depth+1);
+        DFS(root->right, depth+1);
     }
-    return ans; 
+    
+    vector<int> largestValues(TreeNode* root) {
+        DFS(root, 0);
+        return result;
     }
 };
