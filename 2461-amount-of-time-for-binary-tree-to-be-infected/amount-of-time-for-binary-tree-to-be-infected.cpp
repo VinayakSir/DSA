@@ -11,59 +11,46 @@
  */
 class Solution {
 public:
-    unordered_map<TreeNode*, TreeNode*> par; // har node ka parent store karega
-TreeNode* startNode = NULL;
+    int burn(TreeNode *root, int start, int &timer){
+        if(root == NULL) return 0;
+        if(root->val == start) return -1;
 
-void findParents(TreeNode* node, TreeNode* p, int start) {
-    if (!node) return;
+        int left = burn(root->left, start, timer);
+        int right = burn(root->right, start, timer);
 
-    findParents(node->left, node, start);  
-
-    par[node] = p;                         
-    if (node->val == start) startNode = node;
-
-    findParents(node->right, node, start); 
-}
-
-int amountOfTime(TreeNode* root, int start) {
-    findParents(root, NULL, start);
-
-    queue<TreeNode*> q;
-    unordered_set<TreeNode*> seen;
-
-    q.push(startNode);
-    seen.insert(startNode);
-
-    int time = -1;
-
-    while (!q.empty()) {
-        int size = q.size();
-        time++; // ek minute pura hua
-
-        for (int i = 0; i < size; i++) {
-            TreeNode* curr = q.front();
-            q.pop();
-
-            // teeno directions check karo: left, right, parent
-            TreeNode* left = curr->left;
-            TreeNode* right = curr->right;
-            TreeNode* up = par[curr];
-
-            if (left  && seen.find(left) == seen.end()) {
-                seen.insert(left);
-                q.push(left);
-            }
-            if (right && seen.find(right) == seen.end()) {
-                seen.insert(right);
-                q.push(right);
-            }
-            if (up  && seen.find(up) == seen.end()) {
-                seen.insert(up);
-                q.push(up);
-            }
+        if(left < 0){
+            timer = max(timer, abs(left) + right);
+            return left-1;
         }
+        if(right < 0){
+            timer = max(timer, abs(right) + left);
+            return right - 1;
+        }
+
+        return 1 + max(left, right);
     }
 
-    return time;
-}
+    void positionOfStart(TreeNode *root, int start, TreeNode* &pos){
+        if(root == NULL) return; 
+        if(root->val == start){
+            pos = root;
+            return;
+        }
+        if(root->left) positionOfStart(root->left, start, pos);
+        if(root->right) positionOfStart(root->right,start, pos);
+    }
+
+    int heightOfStart(TreeNode *pos){
+        if(pos == NULL) return 0;
+        return 1 + max(heightOfStart(pos->left), heightOfStart(pos->right));
+    }
+
+    int amountOfTime(TreeNode* root, int start) {
+        int timer = 0;
+        burn(root, start, timer);
+        TreeNode *pos = NULL;
+        positionOfStart(root, start, pos);
+        int height = heightOfStart(pos) - 1;
+        return max(timer, height);
+    }
 };
