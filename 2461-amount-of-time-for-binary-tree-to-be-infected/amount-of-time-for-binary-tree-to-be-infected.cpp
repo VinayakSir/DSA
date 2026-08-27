@@ -11,46 +11,52 @@
  */
 class Solution {
 public:
-    int burn(TreeNode *root, int start, int &timer){
-        if(root == NULL) return 0;
-        if(root->val == start) return -1;
-
-        int left = burn(root->left, start, timer);
-        int right = burn(root->right, start, timer);
-
-        if(left < 0){
-            timer = max(timer, abs(left) + right);
-            return left-1;
-        }
-        if(right < 0){
-            timer = max(timer, abs(right) + left);
-            return right - 1;
-        }
-
-        return 1 + max(left, right);
-    }
-
-    void positionOfStart(TreeNode *root, int start, TreeNode* &pos){
-        if(root == NULL) return; 
-        if(root->val == start){
-            pos = root;
+     void convert(TreeNode* current, int parent, unordered_map<int, vector<int>>& adj) {
+        if (current == nullptr) {
             return;
         }
-        if(root->left) positionOfStart(root->left, start, pos);
-        if(root->right) positionOfStart(root->right,start, pos);
-    }
 
-    int heightOfStart(TreeNode *pos){
-        if(pos == NULL) return 0;
-        return 1 + max(heightOfStart(pos->left), heightOfStart(pos->right));
+        if (parent != -1) {
+            adj[current->val].push_back(parent);
+        }
+
+        if (current->left != nullptr) {
+            adj[current->val].push_back(current->left->val);
+        } 
+        if (current->right != nullptr) {
+            adj[current->val].push_back(current->right->val);
+        }
+        convert(current->left, current->val, adj);
+        convert(current->right, current->val, adj);
     }
 
     int amountOfTime(TreeNode* root, int start) {
-        int timer = 0;
-        burn(root, start, timer);
-        TreeNode *pos = NULL;
-        positionOfStart(root, start, pos);
-        int height = heightOfStart(pos) - 1;
-        return max(timer, height);
+        unordered_map<int, vector<int>> adj;
+        convert(root, -1, adj);
+
+        queue<int> que;
+        que.push(start);
+        unordered_set<int> visited;
+        visited.insert(start);
+        int minutes = 0;
+
+        while (!que.empty()) {
+            int n = que.size();
+
+            while (n--) {
+                int curr = que.front();
+                que.pop();
+
+                for (int &ngbr : adj[curr]) {
+                    if (visited.find(ngbr) == visited.end()) {
+                        que.push(ngbr);
+                        visited.insert(ngbr);
+                    }
+                }
+            }
+            minutes++;
+        }
+
+        return minutes - 1;
     }
 };
